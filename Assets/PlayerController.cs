@@ -39,28 +39,28 @@ namespace Assembly_CSharp
 
             //baseState.update(Time.deltaTime);
 
-            if (Input.GetKey(KeyCode.A))
+            if (Input.GetKey(KeyCode.A)||Input.GetKey(KeyCode.LeftArrow))
             {
                 targetX -= 1;
             }
 
-            if (Input.GetKey(KeyCode.D))
+            if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
             {
                 targetX += 1;
             }
 
             baseState.HorizontalMove(targetX*5, Time.deltaTime);
 
-            if (Input.GetKeyDown(KeyCode.W))
+            if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.Space))
             {
                 baseState = baseState.Jump();
             }
 
-            if (Input.GetKeyDown(KeyCode.S))
+            if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow))
             {
                 baseState = baseState.ToggleDuck();
             }
-            else if (Input.GetKeyUp(KeyCode.S))
+            else if (Input.GetKeyUp(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow))
             {
                 baseState = baseState.ToggleDuck();
             }
