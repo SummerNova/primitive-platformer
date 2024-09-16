@@ -7,6 +7,12 @@ public class MinimapManager : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] RawImage Target;
+    [SerializeField] float Xright = 20;
+    [SerializeField] float Ytop = 20;
+    [SerializeField] float YBot = -20;
+    [SerializeField] float Xleft = -20;
+    [SerializeField] float pixelDensity = 4;
+    
 
     static MinimapObject Player;
     static List<MinimapObject> EnvironmentObjects = new();
@@ -35,6 +41,7 @@ public class MinimapManager : MonoBehaviour
     [SerializeField] Color _CollectibleColor = Color.yellow;
     [SerializeField] Color _BackgroundColor = Color.black;
 
+
     public static int LoadObject(Transform Object, RenderType type)
     {
         MinimapObject temp = new(ID, Object);
@@ -60,7 +67,7 @@ public class MinimapManager : MonoBehaviour
     {
         switch (type)
         {
-            case RenderType.Player: throw new UnassignedReferenceException("Tried Unloading player"); break;
+            case RenderType.Player: Player = new(ID,GameManager.instance.transform); break;
             case RenderType.Environment: 
                 for (int i = 0; i < EnvironmentObjects.Count; i++)
                 {
@@ -118,42 +125,56 @@ public class MinimapManager : MonoBehaviour
         Color TargetColor;
         switch (type) 
         {
-            case RenderType.Player: TargetColor = _PlayerColor; break;  
+            case RenderType.Player: TargetColor = _PlayerColor; PosY -= SizeY;  break;  
             case RenderType.Hazard: TargetColor = _HazardColor; break;
             case RenderType.Collectible: TargetColor = _CollectibleColor; break;
             case RenderType.Environment: TargetColor = _EnvironmentColor; break;
             default: TargetColor = _BackgroundColor; break;
         }
 
+        
 
-        for (int x = (int)Mathf.Max(0,PosX - SizeX); x < Mathf.Min(_BaseTexture.width, PosX + SizeX); x++)
+        int startingX = (int)Mathf.Max(0, PosX - SizeX);
+        int startingY = (int)Mathf.Max(0, PosY - SizeY);
+        int endingX = (int)Mathf.Min(_TargetTexture.width, PosX + SizeX);
+        int endingY = (int)Mathf.Min(_TargetTexture.height, PosY + SizeY);
+        int LenX = endingX - startingX;
+        int LenY = endingY - startingY;
+        
+
+
+        if (startingX < endingX && startingY<endingY) 
         {
-            for (int y = (int)Mathf.Max(0, PosY - SizeY); y < Mathf.Min(_BaseTexture.width, PosY + SizeY); y++)
+            Color[] colors = new Color[LenX*LenY];
+            for (int i = 0;i<colors.Length;i++)
             {
-                _TargetTexture.SetPixel(x, y, new(TargetColor.r, TargetColor.g, TargetColor.b, _BaseTexture.GetPixel(x, y).a));
-
-                
+                colors[i] = new(TargetColor.r,TargetColor.g, TargetColor.b,_TargetTexture.GetPixel(startingX+ i%LenX, startingY + i/LenX).a);
             }
+            _TargetTexture.SetPixels(startingX, startingY, LenX, LenY, colors);
         }
+       
+
 
     }
+
 
     private void ResetFrame()
     {
         _TargetTexture = new Texture2D(_BaseTexture.width, _BaseTexture.height);
         MidX = _BaseTexture.width/2;
         MidY = _BaseTexture.height/2;
-        for (int x = 0; x < _BaseTexture.width; x++)
+        Color[] array = _TargetTexture.GetPixels();
+        int i = 0;
+        foreach (Color col in _BaseTexture.GetPixels())
         {
-            for (int y = 0; y < _BaseTexture.height; y++)
-            {
-                _TargetTexture.SetPixel(x, y, new(_BackgroundColor.r, _BackgroundColor.g, _BackgroundColor.b, _BaseTexture.GetPixel(x, y).a));
-            }
+            array[i] = new Color(_BackgroundColor.r, _BackgroundColor.g, _BackgroundColor.b, col.a);
+            i++;
         }
+        _TargetTexture.SetPixels(array);
     }
 }
 
-public struct MinimapObject
+public class MinimapObject
 {
     public int ID { get; private set; }
     public Transform Ref { get; private set; }
